@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROTOCOL: STUDY // LINK</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --panel: #13131a;
+            --accent: #b026ff; /* Neon Purple */
+            --text-main: #e0e0e0;
+            --text-dim: #6e6e80;
+            --green: #00ff9d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: var(--green);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--green);
+        }
+
+        /* MAIN LAYOUT */
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px; /* Sidebar - Timer - Chat */
+            height: 100%;
+        }
+
+        /* PANELS */
+        .panel {
+            padding: 1.5rem;
+            border-right: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TIMER SECTION (CENTER) */
+        .timer-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .timer-display {
+            font-size: 6rem;
+            font-weight: 700;
+            margin: 2rem 0;
+            text-shadow: 0 0 20px rgba(176, 38, 255, 0.5);
+        }
+        .btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 10px 30px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+        .btn:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 15px var(--accent);
+        }
+        .focus-mode {
+            animation: pulse-border 4s infinite;
+        }
+        @keyframes pulse-border {
+            0% { box-shadow: inset 0 0 0px var(--bg); }
+            50% { box-shadow: inset 0 0 50px rgba(176, 38, 255, 0.2); }
+            100% { box-shadow: inset 0 0 0px var(--bg); }
+        }
+
+        /* CHAT SECTION */
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .message {
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+        }
+        .msg-time { color: var(--text-dim); font-size: 0.75rem; margin-right: 5px; }
+        .msg-user { color: var(--accent); font-weight: bold; margin-right: 5px; }
+        
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            background: #1a1a24;
+            border: 1px solid #333;
+            color: white;
+            padding: 10px;
+            flex-grow: 1;
+            font-family: inherit;
+        }
+        input:focus { outline: 1px solid var(--accent); }
+
+        /* SIDEBAR */
+        .user-list-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: var(--text-dim);
+        }
+        .active-user { color: white; }
+        
+        /* MUSIC PLAYER HIDDEN */
+        #music-frame { width: 100%; height: 80px; margin-top: auto; border: none; opacity: 0.7; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+            .panel { border-right: none; border-bottom: 1px solid #222; }
+            .timer-display { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div><span class="status-indicator"></span><span id="system-status">SYSTEM ONLINE</span></div>
+        <div id="username-display">GUEST</div>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h3 style="color:var(--text-dim); margin-bottom:1rem;">// OPERATIVES</h3>
+            <div id="user-list">
+                </div>
+            
+            <div style="margin-top:auto">
+                 <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:5px;">AUDIO FEED</p>
+                 <iframe id="music-frame" src="https://www.youtube.com/embed/jfKfPfyJRdk?controls=0" title="Lofi Player"></iframe>
+            </div>
+        </div>
+
+        <div class="panel timer-section" id="timer-box">
+            <h2 style="color:var(--text-dim); letter-spacing: 2px;">SESSION TIMER</h2>
+            <div class="timer-display" id="time">00:00:00</div>
+            <div>
+                <button class="btn" onclick="toggleTimer()">INITIATE</button>
+                <button class="btn" onclick="resetTimer()" style="border-color:#ff4444; color:#ff4444;">ABORT</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 style="color:var(--text-dim); margin-bottom:1rem;">// COMMS LINK</h3>
+            <div class="chat-messages" id="chat-box">
+                <div class="message"><span class="msg-time">[SYS]</span> Welcome to the Digital Common Room.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="msg-input" placeholder="Transmit message..." onkeypress="handleEnter(event)">
+                <button class="btn" onclick="sendMessage()" style="padding: 10px;">></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        let username = localStorage.getItem('username') || prompt("Identify yourself (Enter Name):");
+        if(username) {
+            localStorage.setItem('username', username);
+            document.getElementById('username-display').innerText = username.toUpperCase();
+        }
+
+        // --- TIMER LOGIC ---
+        let seconds = 0;
+        let interval = null;
+        let isRunning = false;
+
+        function updateDisplay() {
+            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('time').innerText = `${h}:${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(interval);
+                document.getElementById('timer-box').classList.remove('focus-mode');
+                // Note: Here you would send "User Paused" to Firebase
+            } else {
+                interval = setInterval(() => { seconds++; updateDisplay(); }, 1000);
+                document.getElementById('timer-box').classList.add('focus-mode');
+                // Note: Here you would send "User Studying" to Firebase
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            seconds = 0;
+            isRunning = false;
+            updateDisplay();
+            document.getElementById('timer-box').classList.remove('focus-mode');
+        }
+
+        // --- CHAT LOGIC (LOCAL ONLY FOR NOW) ---
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const text = input.value;
+            if (!text) return;
+
+            addMessageToUI(username, text);
+            input.value = '';
+            
+            // SIMULATION: Bot Reply (Remove this when adding Firebase)
+            if(Math.random() > 0.7) {
+                setTimeout(() => {
+                    addMessageToUI("SYSTEM_BOT", "Message received. Keep grinding.");
+                }, 1000);
+            }
+        }
+
+        function addMessageToUI(user, text) {
+            const chatBox = document.getElementById('chat-box');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            msgDiv.innerHTML = `<span class="msg-time">[${time}]</span> <span class="msg-user">${user}:</span> ${text}`;
+            
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        // --- MOCK USERS (VISUAL ONLY) ---
+        const mockUsers = [
+            { name: username, status: 'ONLINE' },
+            { name: 'Sarah_Codes', status: 'STUDYING (2h 10m)' },
+            { name: 'Dev_Rohan', status: 'OFFLINE' }
+        ];
+        
+        const userList = document.getElementById('user-list');
+        mockUsers.forEach(u => {
+            const div = document.createElement('div');
+            div.className = `user-list-item ${u.name === username ? 'active-user' : ''}`;
+            div.innerHTML = `<span class="status-indicator" style="background-color:${u.status === 'OFFLINE' ? '#333' : '#00ff9d'}"></span> ${u.name} <br><span style="font-size:0.7rem; margin-left:10px; opacity:0.6">${u.status}</span>`;
+            userList.appendChild(div);
+        });
+
+    </script>
+</body>
+</html>
